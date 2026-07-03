@@ -1,4 +1,4 @@
-package org.example.test.createschematicpreview.client;
+package dev.titlo10.createschematicpreview.client;
 
 import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
 import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
@@ -35,8 +35,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-import org.example.test.createschematicpreview.Config;
-import org.example.test.createschematicpreview.Createschematicpreview;
+import dev.titlo10.createschematicpreview.SchematicPreviewConfig;
+import dev.titlo10.createschematicpreview.CreateSchematicPreview;
 import org.slf4j.Logger;
 
 @OnlyIn(Dist.CLIENT)
@@ -63,8 +63,8 @@ public class SchematicPreviewPanel {
 	private SchematicRenderer renderer;
 	private Vec3i size = Vec3i.ZERO;
 
-	private float yaw = (float) Config.defaultYaw;
-	private float pitch = (float) Config.defaultPitch;
+	private float yaw = (float) SchematicPreviewConfig.defaultYaw;
+	private float pitch = (float) SchematicPreviewConfig.defaultPitch;
 	private float zoom = 1.0F;
 
 	private boolean dragging;
@@ -95,13 +95,13 @@ public class SchematicPreviewPanel {
 		currentFile = null;
 		renderer = null;
 		size = Vec3i.ZERO;
-		yaw = (float) Config.defaultYaw;
-		pitch = (float) Config.defaultPitch;
+		yaw = (float) SchematicPreviewConfig.defaultYaw;
+		pitch = (float) SchematicPreviewConfig.defaultPitch;
 		zoom = 1.0F;
 	}
 
 	private void tickLoad() {
-		if (pendingFile != null && Util.getMillis() - pendingSince >= Config.loadDelayMs)
+		if (pendingFile != null && Util.getMillis() - pendingSince >= SchematicPreviewConfig.loadDelayMs)
 			build(pendingFile);
 	}
 
@@ -129,7 +129,7 @@ public class SchematicPreviewPanel {
 			}
 
 			long volume = (long) templateSize.getX() * templateSize.getY() * templateSize.getZ();
-			if (volume > Config.maxBlockVolume) {
+			if (volume > SchematicPreviewConfig.maxBlockVolume) {
 				size = templateSize;
 				state = State.TOO_LARGE;
 				return;
@@ -145,7 +145,7 @@ public class SchematicPreviewPanel {
 			size = templateSize;
 			state = State.OK;
 		} catch (Exception e) {
-			LOGGER.warn("[{}] Failed to build schematic preview for '{}'", Createschematicpreview.MODID, fileName, e);
+			LOGGER.warn("[{}] Failed to build schematic preview for '{}'", CreateSchematicPreview.MODID, fileName, e);
 			renderer = null;
 			state = State.FAILED;
 		}
@@ -205,7 +205,7 @@ public class SchematicPreviewPanel {
 			drawCenteredStatus(graphics, mc, innerX, innerY, innerW, innerH);
 		}
 
-		Component title = Component.translatable("gui." + Createschematicpreview.MODID + ".preview.title");
+		Component title = Component.translatable("gui." + CreateSchematicPreview.MODID + ".preview.title");
 		graphics.drawString(mc.font, title, innerX + 3, innerY + 3, TITLE_COLOR);
 	}
 
@@ -227,11 +227,11 @@ public class SchematicPreviewPanel {
 	private void drawCenteredStatus(GuiGraphics graphics, Minecraft mc, int x, int y, int w, int h) {
 		String key;
 		switch (state) {
-			case LOADING -> key = "gui." + Createschematicpreview.MODID + ".preview.loading";
-			case TOO_LARGE -> key = "gui." + Createschematicpreview.MODID + ".preview.too_large";
-			case FAILED -> key = "gui." + Createschematicpreview.MODID + ".preview.failed";
-			case EMPTY -> key = "gui." + Createschematicpreview.MODID + ".preview.empty";
-			default -> key = "gui." + Createschematicpreview.MODID + ".preview.none";
+			case LOADING -> key = "gui." + CreateSchematicPreview.MODID + ".preview.loading";
+			case TOO_LARGE -> key = "gui." + CreateSchematicPreview.MODID + ".preview.too_large";
+			case FAILED -> key = "gui." + CreateSchematicPreview.MODID + ".preview.failed";
+			case EMPTY -> key = "gui." + CreateSchematicPreview.MODID + ".preview.empty";
+			default -> key = "gui." + CreateSchematicPreview.MODID + ".preview.none";
 		}
 		Component text = Component.translatable(key);
 		graphics.drawString(mc.font, text, x + (w - mc.font.width(text)) / 2, y + h / 2 - 4, 0xFFFFFFFF);

@@ -1,4 +1,4 @@
-package org.example.test.createschematicpreview.mixin;
+package dev.titlo10.createschematicpreview.mixin;
 
 import com.simibubi.create.content.schematics.table.SchematicTableScreen;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
@@ -10,9 +10,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.util.Mth;
 
-import org.example.test.createschematicpreview.Config;
-import org.example.test.createschematicpreview.client.PreviewScreenAccess;
-import org.example.test.createschematicpreview.client.SchematicPreviewPanel;
+import dev.titlo10.createschematicpreview.SchematicPreviewConfig;
+import dev.titlo10.createschematicpreview.mixin_interfaces.PreviewScreenAccess;
+import dev.titlo10.createschematicpreview.client.SchematicPreviewPanel;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
@@ -49,7 +49,7 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 	@Inject(method = "renderBg", at = @At("TAIL"))
 	private void createschematicpreview$renderPanel(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY,
 													 CallbackInfo ci) {
-		if (!Config.previewEnabled || createschematicpreview$panel == null)
+		if (!SchematicPreviewConfig.previewEnabled || createschematicpreview$panel == null)
 			return;
 
 		SchematicTableScreen self = (SchematicTableScreen) (Object) this;
@@ -65,9 +65,9 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 
 		int screenW = mc.getWindow().getGuiScaledWidth();
 		int screenH = mc.getWindow().getGuiScaledHeight();
-		int panelW = Math.min(Config.panelWidth,
+		int panelW = Math.min(SchematicPreviewConfig.panelWidth,
 			Math.max(1, screenW - createschematicpreview$SCREEN_MARGIN * 2));
-		int panelH = Math.min(Config.panelHeight,
+		int panelH = Math.min(SchematicPreviewConfig.panelHeight,
 			Math.max(1, screenH - createschematicpreview$SCREEN_MARGIN * 2));
 		int minPanelW = Math.min(createschematicpreview$MIN_PANEL_SIZE, panelW);
 		int minPanelH = Math.min(createschematicpreview$MIN_PANEL_SIZE, panelH);

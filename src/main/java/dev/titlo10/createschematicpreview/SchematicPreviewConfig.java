@@ -1,16 +1,16 @@
-package org.example.test.createschematicpreview;
+package dev.titlo10.createschematicpreview;
 
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-@EventBusSubscriber(modid = Createschematicpreview.MODID)
-public class Config {
+@EventBusSubscriber(modid = CreateSchematicPreview.MODID)
+public class SchematicPreviewConfig {
 	private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
 	private static final ModConfigSpec.BooleanValue PREVIEW_ENABLED = BUILDER
-		.comment("Master toggle for the 3D schematic preview panel.")
+		.comment("Enable 3D schematic preview.")
 		.define("previewEnabled", true);
 
 	private static final ModConfigSpec.IntValue MAX_BLOCK_VOLUME = BUILDER
@@ -30,15 +30,19 @@ public class Config {
 		.comment("How long (milliseconds) a schematic must stay highlighted before its 3D preview is",
 			"built. This makes loading lazy/on-demand: schematics you merely scroll past are never",
 			"built, only the one you actually settle on. 0 = build immediately on selection.")
-		.defineInRange("previewLoadDelayMs", 150, 0, 5000);
+		.defineInRange("previewLoadDelayMs", 1000, 0, 5000);
 
 	private static final ModConfigSpec.DoubleValue DEFAULT_YAW = BUILDER
-		.comment("Initial horizontal rotation (degrees) of a freshly selected schematic.")
+		.comment("Initial horizontal rotation (degrees) of a selected schematic.")
 		.defineInRange("defaultYaw", 45.0, -180.0, 180.0);
 
 	private static final ModConfigSpec.DoubleValue DEFAULT_PITCH = BUILDER
-		.comment("Initial vertical tilt (degrees) of a freshly selected schematic.")
+		.comment("Initial vertical tilt (degrees) of a selected schematic.")
 		.defineInRange("defaultPitch", 30.0, -90.0, 90.0);
+
+	private static final ModConfigSpec.DoubleValue DEFAULT_ZOOM = BUILDER
+			.comment("Initial zoom amount for a selected schematic.")
+			.defineInRange("defaultZoom", 1, 0.5, 3);
 
 	static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -52,8 +56,7 @@ public class Config {
 
 	@SubscribeEvent
 	static void onLoad(final ModConfigEvent event) {
-		if (event.getConfig().getSpec() != SPEC)
-			return;
+		if (event.getConfig().getSpec() != SPEC) return;
 		previewEnabled = PREVIEW_ENABLED.get();
 		maxBlockVolume = MAX_BLOCK_VOLUME.get();
 		panelWidth = PANEL_WIDTH.get();

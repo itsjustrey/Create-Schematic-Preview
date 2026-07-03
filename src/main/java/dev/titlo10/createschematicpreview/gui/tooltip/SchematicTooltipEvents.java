@@ -1,4 +1,4 @@
-package org.example.test.createschematicpreview.client;
+package dev.titlo10.createschematicpreview.gui.tooltip;
 
 import java.util.List;
 
@@ -20,10 +20,10 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
-import org.example.test.createschematicpreview.Config;
-import org.example.test.createschematicpreview.Createschematicpreview;
+import dev.titlo10.createschematicpreview.SchematicPreviewConfig;
+import dev.titlo10.createschematicpreview.CreateSchematicPreview;
 
-@EventBusSubscriber(modid = Createschematicpreview.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CreateSchematicPreview.MODID, value = Dist.CLIENT)
 public class SchematicTooltipEvents {
 
 	private static final int MIN_PREVIEW_SIZE = 48;
@@ -32,7 +32,7 @@ public class SchematicTooltipEvents {
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	static void addPreviewHint(ItemTooltipEvent event) {
-		if (!Config.previewEnabled || event.getEntity() == null || !hasSchematicFile(event.getItemStack()))
+		if (!SchematicPreviewConfig.previewEnabled || event.getEntity() == null || missingSchematicFile(event.getItemStack()))
 			return;
 
 		String fileName = event.getItemStack().get(AllDataComponents.SCHEMATIC_FILE);
@@ -47,35 +47,33 @@ public class SchematicTooltipEvents {
 	@SubscribeEvent
 	static void addPreviewComponent(RenderTooltipEvent.GatherComponents event) {
 		ItemStack stack = event.getItemStack();
-		if (!Config.previewEnabled || !Screen.hasAltDown() || !hasSchematicFile(stack))
+		if (!SchematicPreviewConfig.previewEnabled || !Screen.hasAltDown() || missingSchematicFile(stack))
 			return;
 
 		String fileName = stack.get(AllDataComponents.SCHEMATIC_FILE);
 		if (fileName == null || fileName.isEmpty())
 			return;
 
-		int width = Math.min(Config.panelWidth, Math.max(MIN_PREVIEW_SIZE,
-			event.getScreenWidth() - SCREEN_EDGE_PADDING));
-		int height = Math.min(Config.panelHeight, Math.max(MIN_PREVIEW_SIZE,
-			event.getScreenHeight() - TOOLTIP_TEXT_HEIGHT_ALLOWANCE));
+		int width = Math.clamp(event.getScreenWidth() - SCREEN_EDGE_PADDING, MIN_PREVIEW_SIZE, SchematicPreviewConfig.panelWidth);
+		int height = Math.clamp(event.getScreenHeight() - TOOLTIP_TEXT_HEIGHT_ALLOWANCE, MIN_PREVIEW_SIZE, SchematicPreviewConfig.panelHeight);
 
 		List<Either<FormattedText, TooltipComponent>> elements = event.getTooltipElements();
 		elements.add(previewComponentIndex(elements), Either.right(new SchematicPreviewTooltip(fileName, width, height)));
 		event.setMaxWidth(Math.max(event.getMaxWidth(), width));
 	}
 
-	private static boolean hasSchematicFile(ItemStack stack) {
-		return !stack.isEmpty() && AllItems.SCHEMATIC.isIn(stack) && stack.has(AllDataComponents.SCHEMATIC_FILE);
+	private static boolean missingSchematicFile(ItemStack stack) {
+		return stack.isEmpty() || !AllItems.SCHEMATIC.isIn(stack) || !stack.has(AllDataComponents.SCHEMATIC_FILE);
 	}
 
 	private static Component previewHint() {
 		boolean alt = Screen.hasAltDown();
 		MutableComponent hint = Component.empty();
-		hint.append(Component.translatable("gui." + Createschematicpreview.MODID + ".tooltip.hold_preview.prefix")
+		hint.append(Component.translatable("gui." + CreateSchematicPreview.MODID + ".tooltip.hold_preview.prefix")
 			.withStyle(ChatFormatting.DARK_GRAY));
-		hint.append(Component.translatable("gui." + Createschematicpreview.MODID + ".tooltip.key_alt")
+		hint.append(Component.translatable("gui." + CreateSchematicPreview.MODID + ".tooltip.key_alt")
 			.withStyle(alt ? ChatFormatting.WHITE : ChatFormatting.GRAY));
-		hint.append(Component.translatable("gui." + Createschematicpreview.MODID + ".tooltip.hold_preview.suffix")
+		hint.append(Component.translatable("gui." + CreateSchematicPreview.MODID + ".tooltip.hold_preview.suffix")
 			.withStyle(ChatFormatting.DARK_GRAY));
 		return hint;
 	}

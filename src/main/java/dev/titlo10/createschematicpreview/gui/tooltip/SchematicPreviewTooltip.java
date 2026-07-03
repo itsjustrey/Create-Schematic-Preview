@@ -1,4 +1,4 @@
-package org.example.test.createschematicpreview.client;
+package dev.titlo10.createschematicpreview.gui.tooltip;
 
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 

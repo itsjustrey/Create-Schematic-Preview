@@ -1,8 +1,10 @@
-package org.example.test.createschematicpreview.client;
+package dev.titlo10.createschematicpreview.gui.tooltip;
 
+import dev.titlo10.createschematicpreview.client.SchematicPreviewPanel;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import org.jetbrains.annotations.NotNull;
 
 public class ClientSchematicPreviewTooltip implements ClientTooltipComponent {
 
@@ -20,12 +22,12 @@ public class ClientSchematicPreviewTooltip implements ClientTooltipComponent {
 	}
 
 	@Override
-	public int getWidth(Font font) {
+	public int getWidth(@NotNull Font font) {
 		return preview.width();
 	}
 
 	@Override
-	public void renderImage(Font font, int x, int y, GuiGraphics graphics) {
+	public void renderImage(@NotNull Font font, int x, int y, @NotNull GuiGraphics graphics) {
 		PANEL.setSelected(preview.fileName());
 		PANEL.render(graphics, x, y, preview.width(), preview.height(), -1, -1, 0);
 	}
