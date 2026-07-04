@@ -1,11 +1,10 @@
 {
-  "gui.createschematicpreview.preview.title": "Preview",
-  "gui.createschematicpreview.preview.none": "Select a schematic",
-  "gui.createschematicpreview.preview.loading": "Loading…",
-  "gui.createschematicpreview.preview.empty": "Empty schematic",
-  "gui.createschematicpreview.preview.too_large": "Schematic too large",
-  "gui.createschematicpreview.preview.failed": "Failed to load",
-  "gui.createschematicpreview.tooltip.hold_preview.prefix": "Hold [",
-  "gui.createschematicpreview.tooltip.key_alt": "Alt",
-  "gui.createschematicpreview.tooltip.hold_preview.suffix": "] for Preview"
+  "createschematicpreview.gui.preview.none": "Select a schematic",
+  "createschematicpreview.gui.preview.loading": "Loading…",
+  "createschematicpreview.gui.preview.empty": "Empty schematic",
+  "createschematicpreview.gui.preview.too_large": "Schematic too large",
+  "createschematicpreview.gui.preview.failed": "Failed to load",
+  "createschematicpreview.gui.tooltip.hold_preview.prefix": "Hold [",
+  "createschematicpreview.gui.tooltip.key_alt": "Alt",
+  "createschematicpreview.gui.tooltip.hold_preview.suffix": "] for Preview"
 }
