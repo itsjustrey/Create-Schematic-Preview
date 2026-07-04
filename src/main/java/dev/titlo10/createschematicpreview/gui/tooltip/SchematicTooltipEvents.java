@@ -20,10 +20,12 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
-import dev.titlo10.createschematicpreview.SchematicPreviewConfig;
 import dev.titlo10.createschematicpreview.CreateSchematicPreview;
 
-@EventBusSubscriber(modid = CreateSchematicPreview.MODID, value = Dist.CLIENT)
+import static dev.titlo10.createschematicpreview.CSPConfig.CONFIG;
+import static dev.titlo10.createschematicpreview.CreateSchematicPreview.translatable;
+
+@EventBusSubscriber(modid = CreateSchematicPreview.MOD_ID, value = Dist.CLIENT)
 public class SchematicTooltipEvents {
 
 	private static final int MIN_PREVIEW_SIZE = 48;
@@ -32,12 +34,10 @@ public class SchematicTooltipEvents {
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	static void addPreviewHint(ItemTooltipEvent event) {
-		if (!SchematicPreviewConfig.previewEnabled || event.getEntity() == null || missingSchematicFile(event.getItemStack()))
-			return;
+		if (!CONFIG.previewEnabled.get() || event.getEntity() == null || missingSchematicFile(event.getItemStack())) return;
 
 		String fileName = event.getItemStack().get(AllDataComponents.SCHEMATIC_FILE);
-		if (fileName == null || fileName.isEmpty())
-			return;
+		if (fileName == null || fileName.isEmpty()) return;
 
 		List<Component> tooltip = event.getToolTip();
 		int index = previewHintIndex(tooltip, fileName);
@@ -47,15 +47,15 @@ public class SchematicTooltipEvents {
 	@SubscribeEvent
 	static void addPreviewComponent(RenderTooltipEvent.GatherComponents event) {
 		ItemStack stack = event.getItemStack();
-		if (!SchematicPreviewConfig.previewEnabled || !Screen.hasAltDown() || missingSchematicFile(stack))
+		if (!CONFIG.previewEnabled.get() || !Screen.hasAltDown() || missingSchematicFile(stack))
 			return;
 
 		String fileName = stack.get(AllDataComponents.SCHEMATIC_FILE);
 		if (fileName == null || fileName.isEmpty())
 			return;
 
-		int width = Math.clamp(event.getScreenWidth() - SCREEN_EDGE_PADDING, MIN_PREVIEW_SIZE, SchematicPreviewConfig.panelWidth);
-		int height = Math.clamp(event.getScreenHeight() - TOOLTIP_TEXT_HEIGHT_ALLOWANCE, MIN_PREVIEW_SIZE, SchematicPreviewConfig.panelHeight);
+		int width = Math.clamp(event.getScreenWidth() - SCREEN_EDGE_PADDING, MIN_PREVIEW_SIZE, CONFIG.sidePanelWidth.get());
+		int height = Math.clamp(event.getScreenHeight() - TOOLTIP_TEXT_HEIGHT_ALLOWANCE, MIN_PREVIEW_SIZE, CONFIG.maxHeight.get());
 
 		List<Either<FormattedText, TooltipComponent>> elements = event.getTooltipElements();
 		elements.add(previewComponentIndex(elements), Either.right(new SchematicPreviewTooltip(fileName, width, height)));
@@ -69,21 +69,18 @@ public class SchematicTooltipEvents {
 	private static Component previewHint() {
 		boolean alt = Screen.hasAltDown();
 		MutableComponent hint = Component.empty();
-		hint.append(Component.translatable("gui." + CreateSchematicPreview.MODID + ".tooltip.hold_preview.prefix")
+		hint.append(translatable("gui.tooltip.hold_preview.prefix")
 			.withStyle(ChatFormatting.DARK_GRAY));
-		hint.append(Component.translatable("gui." + CreateSchematicPreview.MODID + ".tooltip.key_alt")
+		hint.append(translatable("gui.tooltip.key_alt")
 			.withStyle(alt ? ChatFormatting.WHITE : ChatFormatting.GRAY));
-		hint.append(Component.translatable("gui." + CreateSchematicPreview.MODID + ".tooltip.hold_preview.suffix")
+		hint.append(translatable("gui.tooltip.hold_preview.suffix")
 			.withStyle(ChatFormatting.DARK_GRAY));
 		return hint;
 	}
 
 	private static int previewComponentIndex(List<Either<FormattedText, TooltipComponent>> elements) {
 		int index = previewHintElementIndex(elements);
-		if (index == -1)
-			index = Math.min(1, elements.size());
-		else
-			index++;
+		index = (index == -1) ? Math.min(1, elements.size()) : index + 1;
 
 		if (index < elements.size() && elements.get(index).map(SchematicTooltipEvents::isEmptyText, component -> false))
 			index++;
@@ -106,6 +103,7 @@ public class SchematicTooltipEvents {
 		return -1;
 	}
 
+	// TODO - This only works for English
 	private static boolean isPreviewHint(FormattedText text) {
 		return text instanceof Component component && component.getString().contains("Preview");
 	}

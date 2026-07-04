@@ -8,7 +8,7 @@ import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactori
 import dev.titlo10.createschematicpreview.CreateSchematicPreview;
 
 @SuppressWarnings("removal")
-@EventBusSubscriber(modid = CreateSchematicPreview.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CreateSchematicPreview.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public class SchematicTooltipFactory {
 
 	@SubscribeEvent

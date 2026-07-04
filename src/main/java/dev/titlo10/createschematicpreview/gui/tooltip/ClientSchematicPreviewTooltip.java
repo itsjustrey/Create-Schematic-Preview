@@ -1,6 +1,6 @@
 package dev.titlo10.createschematicpreview.gui.tooltip;
 
-import dev.titlo10.createschematicpreview.client.SchematicPreviewPanel;
+import dev.titlo10.createschematicpreview.gui.SchematicPreviewPanel;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
