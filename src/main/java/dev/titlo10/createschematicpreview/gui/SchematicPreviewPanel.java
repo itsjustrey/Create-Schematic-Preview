@@ -11,6 +11,8 @@ import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.schematics.SchematicItem;
 import com.simibubi.create.content.schematics.client.SchematicRenderer;
+import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 
 import net.createmod.catnip.gui.UIRenderHelper;
 import net.createmod.catnip.levelWrappers.SchematicLevel;
@@ -147,6 +149,7 @@ public class SchematicPreviewPanel {
 				fakeSchematicLevel.getRandom(), Block.UPDATE_CLIENTS);
 			for (BlockEntity be : fakeSchematicLevel.getBlockEntities())
 				be.setLevel(fakeSchematicLevel);
+			fixControllerBlockEntities(fakeSchematicLevel);
 
 			renderer = new SchematicRenderer(fakeSchematicLevel);
 			size = templateSize;
@@ -155,6 +158,24 @@ public class SchematicPreviewPanel {
 			LOGGER.warn("Failed to build schematic preview for '{}'", fileName, e);
 			renderer = null;
 			state = State.FAILED;
+		}
+	}
+
+	private void fixControllerBlockEntities(SchematicLevel schematicLevel) {
+		for (BlockEntity blockEntity : schematicLevel.getBlockEntities()) {
+			if (!(blockEntity instanceof IMultiBlockEntityContainer multiBlock))
+				continue;
+
+			BlockPos lastKnownPos = multiBlock.getLastKnownPos();
+			BlockPos currentPos = blockEntity.getBlockPos();
+			if (lastKnownPos == null || currentPos == null || multiBlock.isController() || lastKnownPos.equals(currentPos))
+				continue;
+
+			BlockPos adjustedController = multiBlock.getController()
+				.offset(currentPos.subtract(lastKnownPos));
+			if (multiBlock instanceof SmartBlockEntity smartBlockEntity)
+				smartBlockEntity.markVirtual();
+			multiBlock.setController(adjustedController);
 		}
 	}
 
