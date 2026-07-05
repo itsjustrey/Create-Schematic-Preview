@@ -2,7 +2,6 @@ package dev.titlo10.createschematicpreview.mixin;
 
 import com.simibubi.create.content.schematics.table.SchematicTableScreen;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
-import com.simibubi.create.foundation.gui.widget.Label;
 import com.simibubi.create.foundation.gui.widget.ScrollInput;
 
 import dev.titlo10.createschematicpreview.util.SchematicUtils;
@@ -22,8 +21,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Optional;
-
 import static dev.titlo10.createschematicpreview.CSPConfig.CONFIG;
 
 @Mixin(SchematicTableScreen.class)
@@ -33,10 +30,8 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 	@Unique private static final int csp$SCREEN_MARGIN = 6;
 	@Unique private static final int csp$MIN_PANEL_SIZE = 60;
 
-	@Shadow private ScrollInput schematicsArea;
-	@Shadow private Label schematicsLabel;
 	@Shadow protected AllGuiTextures background;
-
+	@Shadow private ScrollInput schematicsArea;
 	@Unique private SchematicPreviewPanel csp$panel;
 
 	@Override
@@ -69,7 +64,6 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 
 		int panelW = Math.clamp(availableW, 1, CONFIG.sidePanelWidth.get());
 		int panelH = Math.clamp(availableH, 1, CONFIG.maxHeight.get());
-		int minPanelW = Math.min(csp$MIN_PANEL_SIZE, panelW);
 		int minPanelH = Math.min(csp$MIN_PANEL_SIZE, panelH);
 		int leftPos = self.getGuiLeft();
 		int topPos = self.getGuiTop();
@@ -87,7 +81,6 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 		}
 
 		int leftRoom = Math.max(0, occupiedLeft - csp$PANEL_GAP - csp$SCREEN_MARGIN);
-		int rightRoom = Math.max(0, screenW - csp$SCREEN_MARGIN - occupiedRight - csp$PANEL_GAP);
 		int aboveRoom = Math.max(0, occupiedTop - csp$PANEL_GAP - csp$SCREEN_MARGIN);
 		int belowRoom = Math.max(0, screenH - csp$SCREEN_MARGIN - occupiedBottom - csp$PANEL_GAP);
 
@@ -96,25 +89,15 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 			px = occupiedLeft - csp$PANEL_GAP - panelW;
 			py = csp$clamp(topPos, csp$SCREEN_MARGIN, screenH - csp$SCREEN_MARGIN - panelH);
 		} else if (belowRoom >= minPanelH || aboveRoom >= minPanelH) {
-			boolean useBelow = belowRoom >= minPanelH && (belowRoom >= aboveRoom || aboveRoom < minPanelH);
-			int verticalRoom = useBelow ? belowRoom : aboveRoom;
-
 			panelW = 204;
 			occupiedLeft = occupiedLeft - 54;
 
-			panelH = Math.min(panelH, verticalRoom);
+			panelH = Math.min(panelH, aboveRoom);
 			px = csp$clamp((occupiedLeft + occupiedRight - panelW) / 2, csp$SCREEN_MARGIN,
 					screenW - csp$SCREEN_MARGIN - panelW);
-			py = useBelow ? occupiedBottom + csp$PANEL_GAP : occupiedTop - csp$PANEL_GAP - panelH;
+			py = occupiedTop - csp$PANEL_GAP - panelH;
 		} else {
-			int sideRoom = Math.max(leftRoom, rightRoom);
-			if (sideRoom < minPanelW) return;
-
-			panelW = sideRoom;
-			py = csp$clamp(topPos, csp$SCREEN_MARGIN,
-				screenH - csp$SCREEN_MARGIN - panelH);
-			px = leftRoom >= rightRoom ? occupiedLeft - csp$PANEL_GAP - panelW
-				: occupiedRight + csp$PANEL_GAP;
+			return;
 		}
 
 		long window = mc.getWindow().getWindow();
