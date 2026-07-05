@@ -2,7 +2,6 @@ package dev.titlo10.createschematicpreview.mixin;
 
 import com.simibubi.create.content.schematics.table.SchematicTableScreen;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
-import com.simibubi.create.foundation.gui.widget.Label;
 import com.simibubi.create.foundation.gui.widget.ScrollInput;
 
 import dev.titlo10.createschematicpreview.util.SchematicUtils;
@@ -31,10 +30,8 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 	@Unique private static final int csp$SCREEN_MARGIN = 6;
 	@Unique private static final int csp$MIN_PANEL_SIZE = 60;
 
-	@Shadow private ScrollInput schematicsArea;
-	@Shadow private Label schematicsLabel;
 	@Shadow protected AllGuiTextures background;
-
+	@Shadow private ScrollInput schematicsArea;
 	@Unique private SchematicPreviewPanel csp$panel;
 
 	@Override
@@ -67,7 +64,6 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 
 		int panelW = Math.clamp(availableW, 1, CONFIG.sidePanelWidth.get());
 		int panelH = Math.clamp(availableH, 1, CONFIG.maxHeight.get());
-		int minPanelW = Math.min(csp$MIN_PANEL_SIZE, panelW);
 		int minPanelH = Math.min(csp$MIN_PANEL_SIZE, panelH);
 		int leftPos = self.getGuiLeft();
 		int topPos = self.getGuiTop();
