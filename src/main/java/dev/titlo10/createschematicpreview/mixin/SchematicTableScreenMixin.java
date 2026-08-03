@@ -20,6 +20,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static dev.titlo10.createschematicpreview.CSPConfig.CONFIG;
 
@@ -32,7 +36,9 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 
 	@Shadow protected AllGuiTextures background;
 	@Shadow private ScrollInput schematicsArea;
+	@Shadow private List<Rect2i> extraAreas;
 	@Unique private SchematicPreviewPanel csp$panel;
+	@Unique @Nullable private Rect2i csp$previewArea;
 
 	@Override
 	@Nullable
@@ -43,20 +49,45 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 	@Inject(method = "init", at = @At("TAIL"))
 	private void csp$initPanel(CallbackInfo ci) {
 		csp$panel = new SchematicPreviewPanel();
+		csp$previewArea = csp$calculatePreviewArea();
 	}
 
 	@Inject(method = "renderBg", at = @At("TAIL"))
 	private void csp$renderPanel(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY,
 	                             CallbackInfo ci) {
-		if (!CONFIG.previewEnabled.get() || csp$panel == null) return;
+		csp$previewArea = csp$calculatePreviewArea();
+		if (csp$previewArea == null || csp$panel == null) return;
 
-		var self = (SchematicTableScreen) (Object) this;
 		Minecraft mc = Minecraft.getInstance();
 
 		if (schematicsArea != null)
 			SchematicUtils.getSchematicNameFromIndex(schematicsArea.getState())
 					.ifPresent(csp$panel::setSelected);
 
+		long window = mc.getWindow().getWindow();
+		boolean leftDown = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+
+		csp$panel.updateMouse(mouseX, mouseY, leftDown);
+		csp$panel.render(graphics, csp$previewArea.getX(), csp$previewArea.getY(),
+				csp$previewArea.getWidth(), csp$previewArea.getHeight(), mouseX, mouseY, partialTicks);
+	}
+
+	@Inject(method = "getExtraAreas", at = @At("RETURN"), cancellable = true)
+	private void csp$includePreviewArea(CallbackInfoReturnable<List<Rect2i>> cir) {
+		if (csp$previewArea == null) return;
+
+		List<Rect2i> areas = new ArrayList<>(cir.getReturnValue());
+		areas.add(csp$previewArea);
+		cir.setReturnValue(List.copyOf(areas));
+	}
+
+	@Unique
+	@Nullable
+	private Rect2i csp$calculatePreviewArea() {
+		if (!CONFIG.previewEnabled.get()) return null;
+
+		var self = (SchematicTableScreen) (Object) this;
+		Minecraft mc = Minecraft.getInstance();
 		int screenW = mc.getWindow().getGuiScaledWidth();
 		int screenH = mc.getWindow().getGuiScaledHeight();
 		int availableW = screenW - csp$SCREEN_MARGIN * 2;
@@ -73,7 +104,7 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 		int occupiedRight = leftPos + background.getWidth();
 		int occupiedBottom = topPos + background.getHeight() + 4 + AllGuiTextures.PLAYER_INVENTORY.getHeight();
 
-		for (Rect2i area : self.getExtraAreas()) {
+		for (Rect2i area : extraAreas) {
 			occupiedLeft = Math.min(occupiedLeft, area.getX());
 			occupiedTop = Math.min(occupiedTop, area.getY());
 			occupiedRight = Math.max(occupiedRight, area.getX() + area.getWidth());
@@ -84,27 +115,24 @@ public abstract class SchematicTableScreenMixin implements PreviewScreenAccess {
 		int aboveRoom = Math.max(0, occupiedTop - csp$PANEL_GAP - csp$SCREEN_MARGIN);
 		int belowRoom = Math.max(0, screenH - csp$SCREEN_MARGIN - occupiedBottom - csp$PANEL_GAP);
 
-		int px, py;
+		int px;
+		int py;
 		if (leftRoom >= panelW) {
 			px = occupiedLeft - csp$PANEL_GAP - panelW;
 			py = csp$clamp(topPos, csp$SCREEN_MARGIN, screenH - csp$SCREEN_MARGIN - panelH);
 		} else if (belowRoom >= minPanelH || aboveRoom >= minPanelH) {
 			panelW = 204;
-			occupiedLeft = occupiedLeft - 54;
+			occupiedLeft -= 54;
 
 			panelH = Math.min(panelH, aboveRoom);
 			px = csp$clamp((occupiedLeft + occupiedRight - panelW) / 2, csp$SCREEN_MARGIN,
 					screenW - csp$SCREEN_MARGIN - panelW);
 			py = occupiedTop - csp$PANEL_GAP - panelH;
 		} else {
-			return;
+			return null;
 		}
 
-		long window = mc.getWindow().getWindow();
-		boolean leftDown = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
-
-		csp$panel.updateMouse(mouseX, mouseY, leftDown);
-		csp$panel.render(graphics, px, py, panelW, panelH, mouseX, mouseY, partialTicks);
+		return new Rect2i(px, py, panelW, panelH);
 	}
 
 	@Unique

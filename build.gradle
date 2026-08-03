@@ -12,6 +12,7 @@ repositories {
     mavenLocal()
     maven { url = 'https://maven.createmod.net' }
     maven { url = 'https://maven.ithundxr.dev/snapshots' }
+    maven { url = 'https://maven.terraformersmc.com/releases' }
 }
 
 base {
@@ -71,6 +72,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}")
+    compileOnly("dev.emi:emi-neoforge:${emi_version}:api")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
