@@ -47,6 +47,7 @@ dependencies {
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:all")
     implementation("net.createmod.catnip:Catnip-Forge-${minecraft_version}:${catnip_version}")
     implementation("com.tterrag.registrate:Registrate:MC1.20-1.3.11")
+    compileOnly("net.createmod.ponder:Ponder-Forge-${minecraft_version}:${ponder_version}")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

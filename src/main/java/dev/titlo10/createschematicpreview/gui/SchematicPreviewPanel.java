@@ -23,6 +23,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.nbt.CompoundTag;
+import net.createmod.catnip.levelWrappers.SchematicLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -143,13 +144,13 @@ public class SchematicPreviewPanel {
 				return;
 			}
 
-			var fakeSchematicLevel = new net.createmod.catnip.utility.levelWrappers.SchematicLevel(level);
+			var fakeSchematicLevel = new SchematicLevel(level);
 			template.placeInWorld(fakeSchematicLevel, BlockPos.ZERO, BlockPos.ZERO, new StructurePlaceSettings(),
 				fakeSchematicLevel.getRandom(), Block.UPDATE_CLIENTS);
 			for (BlockEntity be : fakeSchematicLevel.getBlockEntities())
 				be.setLevel(fakeSchematicLevel);
 
-			renderer = new SchematicRenderer(new SchematicLevel(fakeSchematicLevel));
+			renderer = new SchematicRenderer(fakeSchematicLevel);
 			size = templateSize;
 			state = State.OK;
 		} catch (Exception e) {
