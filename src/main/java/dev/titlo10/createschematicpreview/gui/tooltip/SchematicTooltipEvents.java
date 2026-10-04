@@ -3,7 +3,6 @@ package dev.titlo10.createschematicpreview.gui.tooltip;
 import java.util.List;
 
 import com.mojang.datafixers.util.Either;
-import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllItems;
 
 import net.minecraft.ChatFormatting;
@@ -11,21 +10,22 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderTooltipEvent;
-import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.event.RenderTooltipEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
 import dev.titlo10.createschematicpreview.CreateSchematicPreview;
 
 import static dev.titlo10.createschematicpreview.CSPConfig.CONFIG;
 import static dev.titlo10.createschematicpreview.CreateSchematicPreview.translatable;
 
-@EventBusSubscriber(modid = CreateSchematicPreview.MOD_ID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = CreateSchematicPreview.MOD_ID, value = Dist.CLIENT)
 public class SchematicTooltipEvents {
 
 	private static final int MIN_PREVIEW_SIZE = 48;
@@ -36,7 +36,7 @@ public class SchematicTooltipEvents {
 	static void addPreviewHint(ItemTooltipEvent event) {
 		if (!CONFIG.previewEnabled.get() || event.getEntity() == null || missingSchematicFile(event.getItemStack())) return;
 
-		String fileName = event.getItemStack().get(AllDataComponents.SCHEMATIC_FILE);
+		String fileName = event.getItemStack().getOrCreateTag().getString("File");
 		if (fileName == null || fileName.isEmpty()) return;
 
 		List<Component> tooltip = event.getToolTip();
@@ -50,12 +50,12 @@ public class SchematicTooltipEvents {
 		if (!CONFIG.previewEnabled.get() || !Screen.hasAltDown() || missingSchematicFile(stack))
 			return;
 
-		String fileName = stack.get(AllDataComponents.SCHEMATIC_FILE);
+		String fileName = stack.getOrCreateTag().getString("File");
 		if (fileName == null || fileName.isEmpty())
 			return;
 
-		int width = Math.clamp(event.getScreenWidth() - SCREEN_EDGE_PADDING, MIN_PREVIEW_SIZE, CONFIG.sidePanelWidth.get());
-		int height = Math.clamp(event.getScreenHeight() - TOOLTIP_TEXT_HEIGHT_ALLOWANCE, MIN_PREVIEW_SIZE, CONFIG.maxHeight.get());
+		int width = Mth.clamp(event.getScreenWidth() - SCREEN_EDGE_PADDING, MIN_PREVIEW_SIZE, CONFIG.sidePanelWidth.get());
+		int height = Mth.clamp(event.getScreenHeight() - TOOLTIP_TEXT_HEIGHT_ALLOWANCE, MIN_PREVIEW_SIZE, CONFIG.maxHeight.get());
 
 		List<Either<FormattedText, TooltipComponent>> elements = event.getTooltipElements();
 		elements.add(previewComponentIndex(elements), Either.right(new SchematicPreviewTooltip(fileName, width, height)));
@@ -63,7 +63,8 @@ public class SchematicTooltipEvents {
 	}
 
 	private static boolean missingSchematicFile(ItemStack stack) {
-		return stack.isEmpty() || !AllItems.SCHEMATIC.isIn(stack) || !stack.has(AllDataComponents.SCHEMATIC_FILE);
+		return stack.isEmpty() || !AllItems.SCHEMATIC.isIn(stack)
+				|| !stack.hasTag() || !stack.getTag().contains("File");
 	}
 
 	private static Component previewHint() {

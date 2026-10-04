@@ -7,12 +7,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
-import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.schematics.SchematicItem;
 import com.simibubi.create.content.schematics.client.SchematicRenderer;
-import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer;
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 
 import net.createmod.catnip.gui.UIRenderHelper;
 import net.createmod.catnip.levelWrappers.SchematicLevel;
@@ -25,6 +22,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -33,8 +31,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Locale;
 
@@ -127,8 +125,9 @@ public class SchematicPreviewPanel {
 		try {
 			String owner = mc.player.getGameProfile().getName();
 			ItemStack blueprint = AllItems.SCHEMATIC.asStack();
-			blueprint.set(AllDataComponents.SCHEMATIC_OWNER, owner);
-			blueprint.set(AllDataComponents.SCHEMATIC_FILE, fileName);
+			CompoundTag tag = blueprint.getOrCreateTag();
+			tag.putString("Owner", owner);
+			tag.putString("File", fileName);
 
 			StructureTemplate template = SchematicItem.loadSchematic(level, blueprint);
 			Vec3i templateSize = template.getSize();
@@ -144,38 +143,19 @@ public class SchematicPreviewPanel {
 				return;
 			}
 
-			var fakeSchematicLevel = new SchematicLevel(level);
+			var fakeSchematicLevel = new net.createmod.catnip.utility.levelWrappers.SchematicLevel(level);
 			template.placeInWorld(fakeSchematicLevel, BlockPos.ZERO, BlockPos.ZERO, new StructurePlaceSettings(),
 				fakeSchematicLevel.getRandom(), Block.UPDATE_CLIENTS);
 			for (BlockEntity be : fakeSchematicLevel.getBlockEntities())
 				be.setLevel(fakeSchematicLevel);
-			fixControllerBlockEntities(fakeSchematicLevel);
 
-			renderer = new SchematicRenderer(fakeSchematicLevel);
+			renderer = new SchematicRenderer(new SchematicLevel(fakeSchematicLevel));
 			size = templateSize;
 			state = State.OK;
 		} catch (Exception e) {
 			LOGGER.warn("Failed to build schematic preview for '{}'", fileName, e);
 			renderer = null;
 			state = State.FAILED;
-		}
-	}
-
-	private void fixControllerBlockEntities(SchematicLevel schematicLevel) {
-		for (BlockEntity blockEntity : schematicLevel.getBlockEntities()) {
-			if (!(blockEntity instanceof IMultiBlockEntityContainer multiBlock))
-				continue;
-
-			BlockPos lastKnownPos = multiBlock.getLastKnownPos();
-			BlockPos currentPos = blockEntity.getBlockPos();
-			if (lastKnownPos == null || currentPos == null || multiBlock.isController() || lastKnownPos.equals(currentPos))
-				continue;
-
-			BlockPos adjustedController = multiBlock.getController()
-				.offset(currentPos.subtract(lastKnownPos));
-			if (multiBlock instanceof SmartBlockEntity smartBlockEntity)
-				smartBlockEntity.markVirtual();
-			multiBlock.setController(adjustedController);
 		}
 	}
 

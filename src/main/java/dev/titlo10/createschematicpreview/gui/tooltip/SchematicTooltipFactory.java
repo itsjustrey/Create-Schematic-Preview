@@ -1,14 +1,14 @@
 package dev.titlo10.createschematicpreview.gui.tooltip;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 
 import dev.titlo10.createschematicpreview.CreateSchematicPreview;
 
 @SuppressWarnings("removal")
-@EventBusSubscriber(modid = CreateSchematicPreview.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = CreateSchematicPreview.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class SchematicTooltipFactory {
 
 	@SubscribeEvent
